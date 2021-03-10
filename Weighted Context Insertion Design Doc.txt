@@ -1,0 +1,23 @@
+Design Notes: Weighted Context Insertion for use in << Futureman>>>>
+
+
+
+Problem Statement:
+Futureman currently takes t values to assign where World Info is taken in context.  This is good, as the values are put in a place where the AI is more likely to use it for output.  However, if too many World Info entries are at too low of a t value, the context can become overloaded, and AI outputs would be more undesired if less low-t values were loaded into context.
+
+However, due to the improvisational narrative nature of AI Dungeon, one cannot be 100% sure what WI will be triggered together when developing the World Info before starting the adventure.  
+
+Workarounds:
+1) lower l values for World Info of lesser importance relative to other World Info entries at the same t value.
+2) 'tiered' t values for categories of importance, making sure that not more than x keys are assigned at t=1, not more than y keys are assigned at t=3, and not more than z keys at t=5; where x,y,z is ascending.
+
+Criticism of Workarounds:
+1) values of l are static.  If l=<2, the World Info can be removed from context before the user would want it to be.  If the minimum l values are increased too high, there is risk of overloading.
+2) There is still a possibility of overloading, and higher tiers of t values if mentioned in a vaccuum, could be ignored by the AI.
+
+Proposal:
+Weighted Context Insertion.  This would mean that World Info Keys would not use the t attribute in EWIJSON, and would use a new attribute 'c' that would need to be created in a plugin for use in EWIJSON.  This value 'c' would be the weight of each World Info's entries priority in an always-active trailing positional insertion also preformed by the plugin, which have static amounts of World Info entries that can be allowed per trailing positional tier.
+
+The easy way to think of this is that every action, four trailing positional context lines will be inserted.  Two WIs at t=1, three WIs at t=3, four WIs at t=5, three WIs at t=7.  Ideally these 't values' will be configurable, but for purposes of development and testing, these values will remain static.
+
+World Info keys of higher 'c' values will be prioritised to be at the lower tiers, while lower values of 'c' will be prioritised higher.  This way, only 12 WIs can be active at a time, and they are ordered to allow the AI room to 'breathe' and read actual prose context.  Any WI over the weight of the 12th WI will not be loaded into context.
